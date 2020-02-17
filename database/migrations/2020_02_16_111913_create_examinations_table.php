@@ -15,6 +15,13 @@ class CreateExaminationsTable extends Migration
     {
         Schema::create('examinations', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('room_id');
+            $table->text('title');
+            $table->time('duration');
+            $table->dateTime('begin_time');
+            $table->dateTime('finish_time');
+            $table->integer('total_question');
+            $table->integer('point');
             $table->timestamps();
         });
     }

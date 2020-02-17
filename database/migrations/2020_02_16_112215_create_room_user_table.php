@@ -15,6 +15,8 @@ class CreateRoomUserTable extends Migration
     {
         Schema::create('room_user', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('room_id');
+            $table->integer('user_id');
             $table->timestamps();
         });
     }

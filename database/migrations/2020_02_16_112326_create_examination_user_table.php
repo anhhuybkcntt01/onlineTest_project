@@ -15,6 +15,9 @@ class CreateExaminationUserTable extends Migration
     {
         Schema::create('examination_user', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('examination_id');
+            $table->integer('user_id');
+            $table->integer('point');
             $table->timestamps();
         });
     }
