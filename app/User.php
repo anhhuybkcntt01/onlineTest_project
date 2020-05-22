@@ -46,8 +46,16 @@ class User extends Authenticatable
          return $this->hasMany(Room::class);
     }
 
-    public function joinedRooms($PARAMETERS)
+    public function joinedRooms()
     {
-        return $this->belongsToMany(Room::class);
+        return $this->belongsToMany(Room::class)
+        ->using(RoomUser::class);
+    }
+
+    public function joinedExams()
+    {
+        return $this->belongsToMany(Examination::class);
+
     }
 }
+

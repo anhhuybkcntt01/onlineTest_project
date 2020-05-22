@@ -9,7 +9,7 @@
 
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('teacher.room.update',['id'=>$room->id]) }}">
+                    <form method="POST" action="{{ route('teacher.room.update',['id'=>$room->id]) }}" enctype="multipart/form-data">
                         @csrf
 
                         @method('put')
@@ -18,7 +18,7 @@
                             <label for="name" class="col-md-4 col-form-label text-md-right">Room Name</label>
 
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ $room->name }}" required autocomplete="name" autofocus>
+                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ $room->name }}" >
 
                                 @error('name')
                                 <span class="invalid-feedback" role="alert">
@@ -32,14 +32,14 @@
                             <label for="" class="col-md-4 col-form-label text-md-right">Room Type</label>
 
                             <div class="col-md-6">
-                                <select class="form-control" name="type">
+                                <select class="form-control" name="type" id="type-selector">
                                     @if($room->type == 'free')
-                                    <option selected="free" value="free">Free</option>
+                                    <option selected value="free">Free</option>
                                     <option value="limit">Limit</option>
                                     @endif
                                     @if($room->type == 'limit')
                                     <option value="free">Free</option>
-                                    <option selected="limit" value="limit">Limit</option>
+                                    <option selected value="limit">Limit</option>
                                     @endif
 
                                 </select>
@@ -50,11 +50,11 @@
                                 @enderror
                             </div>
                         </div>
-                        <div class="form-group row">
+                        <div class="form-group row" id="password-field" style="display: {{ $room->type == 'free' ? 'none' : '' }}">
                             <label for="" class="col-md-4 col-form-label text-md-right">Room Password</label>
 
                             <div class="col-md-6">
-                                <input id="password" type="integer" class="form-control @error('name') is-invalid @enderror" name="password" value="{{ $room->password }}" required autocomplete="password" autofocus>
+                                <input id="password" type="integer" class="form-control @error('name') is-invalid @enderror" name="password" value="{{ $room->password }}" >
 
                                 @error('password')
                                 <span class="invalid-feedback" role="alert">
@@ -64,13 +64,24 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <br>
-                                <img src="{{ $room->avatar }}" height="100">
-                            <br>
-                            <label for="" class="col-md-4 col-form-label text-md-right">Room Avatar</label>
+                            <label for="fileupload"  class="col-md-4 col-form-label text-md-right">Room Avatar</label>
+
+
 
                             <div class="col-md-6">
-                                <input id="avatar" type="file" class="form-control @error('name') is-invalid @enderror" name="avatar" value="{{ $room->avatar }}" required autocomplete="avatar" autofocus>
+
+                                <div style="display:flex">
+                                    <img id="thumbnil" src="{{ URL::to('storage/'.$room->avatar) }}" height="100%" width="100%" alt="image"/>
+                                </div>
+                                <button class="addfiles btn-success" style="border: 1px;
+                                margin-left: 40px" >Add Your Files</button>
+                                <button class="addfiles btn-warning" style="border: 1px;
+                                margin-left: 30px" >Add Your Files</button>
+                                <input id="fileupload" type="file" name="avatar" style='display: none;'
+                                accept="image/*"  onchange="showMyImage(this)"
+                                class="form-control @error('avatar') is-invalid @enderror">
+
+
 
                                 @error('avatar')
                                 <span class="invalid-feedback" role="alert">
@@ -99,4 +110,52 @@
         </div>
     </div>
 </div>
+@endsection
+@section('js')
+<script>
+
+    $(document).ready(function(){
+        $('#type-selector').on('change', function() {
+          if ( this.value == 'limit')
+          {
+            $("#password-field").show();
+        }
+        else
+        {
+            $("#password-field").hide();
+        }
+    });
+
+
+    });
+
+
+
+    $('.addfiles').on('click', function() { $('#fileupload').click();return false;});
+
+    function showMyImage(fileInput) {
+        var files = fileInput.files;
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            var imageType = /image.*/;
+            if (!file.type.match(imageType)) {
+
+                continue;
+            }
+            var img=document.getElementById("thumbnil");
+            img.file = file;
+            var reader = new FileReader();
+            reader.onload = (function(aImg) {
+                return function(e) {
+                    aImg.src = e.target.result;
+                };
+            })(img);
+            reader.readAsDataURL(file);
+
+        }
+    }
+
+
+
+</script>
 @endsection

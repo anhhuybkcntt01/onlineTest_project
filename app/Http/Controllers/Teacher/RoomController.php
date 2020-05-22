@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Teacher;
 
 use Auth;
 use App\Room;
+use App\RoomUser;
+use App\Examination;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 
 class RoomController extends Controller
@@ -21,7 +25,7 @@ class RoomController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $rooms = $user->createdRooms()->paginate(2);
+        $rooms = $user->createdRooms()->paginate(5);
         return view('teacher.room.index', compact('rooms'));
     }
 
@@ -43,20 +47,35 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-        $validatedData = $request->validate(
-            ['name' => ['required'],
-            'type' => ['required'],
-            'password' => ['required', 'min:6', 'numeric'],
-            'avatar' => ['required'],]);
+        if($request->type == 'limit'){
+            $validatedData = $request->validate(
+                ['name' => ['required'],
+                'type' => ['required'],
+                'password' => [ 'required','min:6'],
+                'avatar' => ['required'],
+            ]);
+        }else{
+            $validatedData = $request->validate(
+                ['name' => ['required'],
+                'type' => ['required'],
+            // 'password' => [ 'min:6', 'numeric'],
+                'avatar' => ['required'],
+            ]);
+        }
+
+    // $imagePath = Storage::putFile('public', $request->file('avatar'));
+
+        $imagePath = $request->file('avatar')->store('images');
         $room = new Room();
         $room->name = $request->name;
         $room->type = $request->type;
         $room->password = $request->password;
-        $room->avatar = $request->avatar;
+        $room->avatar = $imagePath;
         $room->user_id = Auth::user()->id;
 
         $room->save();
-        return redirect(route('teacher.room.index'));
+        return redirect(route('teacher.examination.index',['room_id'=>$room->id]))
+            ->with('success','Created New Room Successfully');
     }
 
     /**
@@ -65,11 +84,21 @@ class RoomController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        $room = Room::find($id);
-        return view('teacher.room.show',compact('room'));
-    }
+    // public function show($id)
+    // {
+    //     $room = Room::find($id);
+    //     $examinations = $room->createdExams()->paginate(5);
+    //     foreach ($examinations as $examination) {
+    //      $current = Carbon::now();
+    //      if($current < $examination->begin_time) $examination->status = 'Open soon';
+    //      if($examination->begin_time <= $current && $current <= $examination->finish_time) $examination->status = 'Opening';
+    //      if($current > $examination->finish_time) $examination->status = 'Closing';
+    //      //$examination->status = $examination->finish_time->diffForHumans($current);
+
+    //      $examination->save();
+    //     }
+    //     return view('teacher.room.show',compact('room','examinations'));
+    // }
 
     /**
      * Show the form for editing the specified resource.
@@ -92,20 +121,46 @@ class RoomController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validatedData = $request->validate(
-            ['name' => ['required'],
-            'type' => ['required'],
-            'password' => ['required', 'min:6'],
-            'avatar' => ['required'],]);
+        if($request->type == 'limit'){
+            $validatedData = $request->validate(
+                ['name' => ['required'],
+                'type' => ['required'],
+                'password' => [ 'required','min:6'],
+            //'avatar' => ['required'],
+            ]);
+        }else{
+            $validatedData = $request->validate(
+                ['name' => ['required'],
+                'type' => ['required'],
+            // 'password' => [ 'min:6', 'numeric'],
+            //'avatar' => ['required'],
+            ]);
+        }
+
+        $avatar = $request->avatar;
         $room = Room::find($id);
-        $room->name = $request->name;
-        $room->type = $request->type;
-        $room->password = $request->password;
-        $room->avatar = $request->avatar;
-        $room->user_id = Auth::user()->id;
+        if($avatar){
+            $imagePath = $request->file('avatar')->store('images');
+
+            $room->name = $request->name;
+            $room->type = $request->type;
+            if($request->type == 'free')$room->password = null;
+            else $room->password = $request->password;
+            $room->avatar = $imagePath;
+            $room->user_id = Auth::user()->id;
+
+        }else{
+
+            $room->name = $request->name;
+            $room->type = $request->type;
+            if($request->type == 'free')$room->password = null;
+            else $room->password = $request->password;
+
+            $room->user_id = Auth::user()->id;
+        }
 
         $room->save();
-        return redirect(route('teacher.room.index'));
+        return redirect(route('teacher.room.index'))->with('success',"Edit Room Successfully");
     }
 
     /**
@@ -116,8 +171,20 @@ class RoomController extends Controller
      */
     public function destroy($id)
     {
+
         $room = Room::find($id);
+
+
+        $room->members()->detach();
+        $room->createdExams()->delete();
+
+
+
+        $destinationPath = 'storage/'.$room->avatar;
+        if(file_exists($destinationPath)){
+            unlink($destinationPath);
+        }
         $room->delete();
-        return back();
+        return back()->with('success',"Delete Room Successfully");
     }
 }

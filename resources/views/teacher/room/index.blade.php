@@ -3,10 +3,16 @@
 <div class="container">
    <div class="row justify-content-center">
     <div class="col-md-8">
+
         <form action="{{ route('teacher.room.create') }}">
             @csrf
-            <button class='btn btn-success'>Thêm lớp mới</button>
+            <button class='btn btn-warning'>Thêm lớp mới</button>
         </form>
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
         <div class="card">
 
             <div class="card">
@@ -27,7 +33,7 @@
                             <td> {{ $room->name }}</td>
                             <td> {{ $room->type }}</td>
                             <td> {{ $room->password }}</td>
-                            <td ><img src="{{ $room->avatar }}" height="100" /></td>
+                            <td ><div><img src="{{ URL::to('storage/'.$room->avatar) }}" height="100%" width="100%" /></div></td>
                             {{-- <a href="">Edit  </a>  <a href="">  Delete</a></ --}}
 
                             <th >
@@ -43,7 +49,7 @@
                                 </form>
                             </th>
                             <th >
-                                <a class="btn btn-info" href="{{ route('teacher.room.show',['id'=>$room->id])}}">Show  </a>
+                                <a class="btn btn-info" href="{{ route('teacher.examination.index',['room_id'=>$room->id])}}">Show  </a>
                             </th>
                         </tr>
 

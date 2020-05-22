@@ -9,12 +9,17 @@ class Room extends Model
 {
     public function owner()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function members()
     {
-         return $this->belongsToMany(User::class);
+         return $this->belongsToMany(User::class)
+         ->using(RoomUser::class);
+    }
+    public function createdExams()
+    {
+        return $this->hasMany(Examination::class);
     }
 
 }
